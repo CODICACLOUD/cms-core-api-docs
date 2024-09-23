@@ -37,7 +37,7 @@ paths:
                         example:
                           - "ec-product"
                           - "ec-order"
-                          - "ec-price"
+                          - "ec-shopper"
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
