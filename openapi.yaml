@@ -1,0 +1,213 @@
+openapi: 3.0.3
+info:
+  title: CMS - Core API
+  contact:
+    email: support@codica.gr
+  version: '1.0'
+servers:
+  - url: https://domain.com/api/v1/auth
+tags:
+  - name: auth
+    description: Management of tokens
+paths:
+  /auth:
+    get:
+      tags:
+        - auth
+      summary: Get all valid abilities a user can have to access the corresponding endpoints.
+      description: These abilities should be used when creating a token.
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid_abilities:
+                    type: object
+                    properties:
+                      god:
+                        type: string
+                        example: "*"
+                      user:
+                        type: array
+                        items:
+                          type: string
+                        example:
+                          - "ec-product"
+                          - "ec-order"
+                          - "ec-price"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/MissingAbilityError'
+    post:
+      tags:
+        - auth
+      summary: Create a new token for a user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              required:
+                - user_email
+                - token_abilities
+                - token_name
+              type: object
+              properties:
+                user_email:
+                  type: string
+                  format: email
+                  example: foo@bar.com
+                token_abilities:
+                  type: array
+                  items:
+                    type: string
+                  example: ['*', 'ec-product']
+                token_name:
+                  type: string
+                  example: a_token_name
+        required: true
+      responses:
+        '201':
+          description: Successful operation. Token Created.
+          content:
+            application/json:
+              schema:
+                required:
+                  - user
+                  - token
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    $ref: '#/components/schemas/Token'
+        '400':
+          description: The required fields are not present/correct.
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/MissingAbilityError'
+  /auth/{email}:
+    parameters:
+      - name: email
+        in: path
+        description: The user's email
+        required: true
+        schema:
+          type: string
+          format: email
+    get:
+      tags:
+        - auth
+      summary: Show all the user's tokens
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                required:
+                  - user
+                  - tokens
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  tokens:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        key:
+                          type: string
+                          example: "c20e4ae20c38471603abecdc258812ca705949e91165e2eb3fe49f2654c70643"
+                        name:
+                          type: string
+                          example: a_token_name
+                        abilities:
+                          type: array
+                          items:
+                            type: string
+                            example: ['*', 'ec-product']
+                        last_used_at:
+                          type: string
+                          format: date-time
+                          example: 2023-10-13 11:20:14
+        '400':
+          $ref: '#/components/responses/UserNotFound'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/MissingAbilityError'
+    delete:
+      tags:
+        - auth
+      summary: Delete al the user's tokens
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                required:
+                  - user
+                  - tokens
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  tokens:
+                    type: object
+                    example: null
+        '400':
+          $ref: '#/components/responses/UserNotFound'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/MissingAbilityError'
+security:
+  - bearerAuth: []
+components:
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+    MissingAbilityError:
+      description: Token doesn't not have all required abilities
+    UserNotFound:
+      description: User with the given email doesn't exist
+  schemas:
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Foo bar"
+        email:
+          type: string
+          format: email
+          example: "foobar@gmail.com"
+    Token:
+      type: object
+      properties:
+        bearer:
+          type: string
+          example: "14|GU0Wdrrag6c4QOO3TpudfSf0vZWvovfEk"
+        name:
+          type: string
+          example: a_token_name
+        abilities:
+          type: array
+          items:
+            type: string
+            example: ['*', 'ec-product']
+        expires_at:
+          type: string
+          example: null
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
