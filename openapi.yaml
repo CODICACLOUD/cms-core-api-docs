@@ -24,20 +24,8 @@ paths:
               schema:
                 type: object
                 properties:
-                  valid_abilities:
-                    type: object
-                    properties:
-                      god:
-                        type: string
-                        example: "*"
-                      user:
-                        type: array
-                        items:
-                          type: string
-                        example:
-                          - "ec-product"
-                          - "ec-order"
-                          - "ec-shopper"
+                  abilities:
+                    $ref: '#/components/schemas/Abilities'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -64,7 +52,7 @@ paths:
                   type: array
                   items:
                     type: string
-                  example: ['*', 'ec-product']
+                  example: ['ec-order', 'ec-product']
                 token_name:
                   type: string
                   example: a_token_name
@@ -131,7 +119,7 @@ paths:
                           type: array
                           items:
                             type: string
-                            example: ['*', 'ec-product']
+                            example: ['ec-order', 'ec-product']
                         last_used_at:
                           type: string
                           format: date-time
@@ -179,6 +167,27 @@ components:
     UserNotFound:
       description: User with the given email doesn't exist
   schemas:
+    Abilities:
+      type: object
+      properties:
+        god:
+          type: array
+          items:
+            type: string
+          example:
+            - "*"
+            - "cms-core"
+        user:
+          type: array
+          items:
+            type: string
+          example:
+            - "ec-location"
+            - "ec-manufacturer"
+            - "ec-order"
+            - "ec-price"
+            - "ec-product"
+            - "ec-shopper"
     User:
       type: object
       properties:
